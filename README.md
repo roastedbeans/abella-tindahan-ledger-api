@@ -81,3 +81,12 @@ Keep `id` and `name`.
 
 The Network address is plain `http://`. Expo Go and development builds allow that. A store
 build would not, which is one reason Week 11 to 13 moves to a deployed HTTPS address.
+
+## Demo accounts
+
+Every route needs a signed-in user's token. These are test accounts in Supabase Auth; the role of each is in the `profiles` table. The admin is the store owner; a client is a customer.
+
+| Role | Email | Password | Can do |
+|---|---|---|---|
+| admin | `admin@tindahan.test` | `tindahan-admin` | `GET` and `POST /api/customers` |
+| client | `client@tindahan.test` | `tindahan-client` | `GET /api/customers` |
