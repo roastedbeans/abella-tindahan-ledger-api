@@ -18,7 +18,7 @@ phone `localhost` means the phone.
 - Network:  http://192.168.1.5:3000
 ```
 
-Open `/` in a browser for a list of every route, each one a link.
+Open `/` in a browser for the web pages: sign in at `/login`, then `/customers`.
 
 Then in `my-app/.env`:
 
@@ -82,11 +82,36 @@ Keep `id` and `name`.
 The Network address is plain `http://`. Expo Go and development builds allow that. A store
 build would not, which is one reason Week 11 to 13 moves to a deployed HTTPS address.
 
+## Web pages
+
+Enterprise Programming 2, Week 5 adds pages on top of the API, on the `feature/web-layout` branch. The phone app's routes are unchanged.
+
+| Page | Who | Shows |
+|---|---|---|
+| `/login` | anyone | Sign in, or create a client account |
+| `/customers` | signed in | The customers and what each owes. The admin also gets the form to add one |
+| `/customers/c1` | signed in | One customer's dues and payments. The admin also gets the form to record one |
+
 ## Demo accounts
 
-Every route needs a signed-in user's token. These are test accounts in Supabase Auth; the role of each is in the `profiles` table. The admin is the store owner; a client is a customer.
+Sign in at `/login`, or send the account's token to a route. These are test accounts in Supabase Auth; the role of each is in the `profiles` table. The admin is the store owner; a client is a customer.
 
 | Role | Email | Password | Can do |
 |---|---|---|---|
-| admin | `admin@tindahan.test` | `tindahan-admin` | `GET` and `POST /api/customers` |
-| client | `client@tindahan.test` | `tindahan-client` | `GET /api/customers` |
+| admin | `admin@tindahan.test` | `tindahan-admin` | See customers, add a customer, add dues and payments |
+| client | `client@tindahan.test` | `tindahan-client` | See customers and their dues and payments |
+
+Anyone can create an account on the login page, and it is always a `client`. There is exactly one admin: the database refuses a second `profiles` row with the role `admin`.
+
+## API contract, version 1
+
+Every route answers `401` when it does not know the user. Send the session cookie (browser) or `Authorization: Bearer <access token>` (the phone app, or another team's app).
+
+| Method | Route | Who | Body | Answers |
+|---|---|---|---|---|
+| GET | `/api/me` | signed in | | `200` `{ id, email, role }` |
+| GET | `/api/customers` | signed in | | `200` list of `{ id, name, balance, lastPaid }` |
+| POST | `/api/customers` | admin | `{ name, balance }` | `201` the new customer, `400` `{ message }`, `403` |
+| GET | `/api/customers/:id` | signed in | | `200` one customer, `404` |
+| GET | `/api/customers/:id/entries` | signed in | | `200` list of `{ id, customerId, kind, amount, createdAt }` |
+| POST | `/api/customers/:id/entries` | admin | `{ kind: "due" or "payment", amount }` | `201` the new entry, `400` `{ message }`, `403`, `404` |
